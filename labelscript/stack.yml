@@ -1,0 +1,16 @@
+provider:
+  name: faas
+  gateway: http://127.0.0.1:8080
+
+functions:
+  script:
+    lang: go
+    handler: ./script
+    image: martindekov/script:latest
+    environment:
+      url: "https://md-gw.team-serverless.xyz"
+      basic_auth: true
+      secret_mount_path: "/var/openfaas/secrets"
+    secrets:
+      - basic-auth-user
+      - basic-auth-password
