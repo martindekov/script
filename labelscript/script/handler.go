@@ -46,12 +46,19 @@ func Handle(req []byte) string {
 		return fmt.Sprintf("Got err: `%v`", resErr.Error())
 	}
 
-	body, _ := ioutil.ReadAll(httpRes.Body)
+	body, bodyErr := ioutil.ReadAll(httpRes.Body)
+	if bodyErr != nil {
+		fmt.Printf("Body err not nil")
+		return fmt.Sprintf("Got err: `%v`", bodyErr.Error())
+	}
+
 	err := json.Unmarshal(body, &Requests)
 	if err != nil {
 		fmt.Printf("EWrror occured")
+		return fmt.Sprintf("Got err: `%v`", err.Error())
 	}
 	httpRes.Body.Close()
+	fmt.Printf("\n-----------------------------------------------------\n")
 	for _, request := range Requests {
 		labels := *request.Labels
 
@@ -65,15 +72,17 @@ func Handle(req []byte) string {
 		bs, err := json.Marshal(request)
 		if err != nil {
 			fmt.Println(err.Error())
+			return fmt.Sprintf("Got err: `%v`", err.Error())
 		}
 
-		//fmt.Println("requests", string(bs))
+		fmt.Printf("\n requests %s \n", string(bs))
 
 		buf := bytes.NewBuffer(bs)
 
-		httpReq, reqErr = http.NewRequest(http.MethodPut, gatewayURL+"/system/functions", buf)
+		httpReq, reqErr = http.NewRequest(http.MethodPost, gatewayURL+"/system/functions", buf)
 		if reqErr != nil {
 			fmt.Printf("The request error is not nil")
+			return fmt.Sprintf("Got err: `%v`", reqErr.Error())
 		}
 		authErr = AddBasicAuth(httpReq)
 		httpReq.Header.Set("Content-Type", "application/json")
@@ -96,9 +105,9 @@ func Handle(req []byte) string {
 		fmt.Printf("Status: %v\n", res.Status)
 		fmt.Printf("\n")
 		res.Body.Close()
+		fmt.Printf("\n-----------------------------------------------------\n")
 	}
-
-	return "wat"
+	return ""
 }
 
 // BasicAuthCredentials for credentials
